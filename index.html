@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="2D Admin" />
+  <meta name="theme-color" content="#312e81" />
+  <link
+    rel="apple-touch-icon"
+    href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='38' fill='%23312e81'/><text x='90' y='84' font-size='56' font-weight='bold' text-anchor='middle' fill='%23fbbf24' font-family='Arial,sans-serif'>2D</text><text x='90' y='132' font-size='28' font-weight='bold' text-anchor='middle' fill='%23ffffff' font-family='Arial,sans-serif'>ADMIN</text></svg>"
+  />
+  <title>2D Admin Management</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --primary: #3730a3;
+      --primary-hover: #312e81;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --open-bg: #f8fafc;
+      --closed-bg: #fecaca;
+      --closed-border: #ef4444;
+      --full-bg: #fed7aa;
+      --full-border: #f97316;
+      --win-bg: #bbf7d0;
+      --win-border: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 32px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e1b4b, #3730a3);
+      color: #fff;
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    header .sub {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 12px auto;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 860px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 11px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      border: 1px solid #64748b;
+      display: inline-block;
+    }
+
+    .grid-10x10 {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+    }
+
+    @media (max-width: 520px) {
+      .grid-10x10 {
+        gap: 3px;
+      }
+    }
+
+    .slot-btn {
+      background: var(--open-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 2px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      transition: transform 0.06s ease;
+    }
+
+    .slot-btn:active {
+      transform: scale(0.95);
+    }
+
+    .slot-btn.selected {
+      outline: 2.5px solid var(--primary);
+      outline-offset: -1px;
+      font-weight: 700;
+    }
+
+    .slot-btn.full {
+      background: var(--full-bg);
+      border-color: var(--full-border);
+    }
+
+    .slot-btn.closed {
+      background: var(--closed-bg);
+      border-color: var(--closed-border);
+      color: #7f1d1d;
+    }
+
+    .slot-btn.win {
+      background: var(--win-bg);
+      border-color: var(--win-border);
+      color: #14532d;
+    }
+
+    .slot-num {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .slot-sub {
+      font-size: 9px;
+      margin-top: 2px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #334155;
+    }
+
+    .slot-btn.closed .slot-sub {
+      color: #991b1b;
+      font-weight: 700;
+    }
+
+    .status-box {
+      margin-top: 10px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      color: #1e1b4b;
+      padding: 9px 11px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .row:last-child {
+      margin-bottom: 0;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    button.btn {
+      border: none;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .btn-success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .info-line {
+      font-size: 13px;
+      margin: 4px 0;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .stat-val {
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .profit {
+      color: #15803d;
+    }
+
+    .loss {
+      color: #b91c1c;
+    }
+
+    .list-text {
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #1e293b;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>2D Admin Management</h1>
+    <div class="sub" id="headerSub">Round: - | Default Pair Limit: 50,000 | Multiplier: 80x</div>
+  </header>
+
+  <main class="container">
+    <!-- Left: 10x10 Grid -->
+    <section class="card">
+      <div class="card-title">
+        <span>10x10 Board (00–99)</span>
+        <div class="legend">
+          <span><i class="dot" style="background:#f8fafc;"></i>Open</span>
+          <span><i class="dot" style="background:#fecaca;border-color:#ef4444;"></i>Closed</span>
+          <span><i class="dot" style="background:#fed7aa;border-color:#f97316;"></i>Pair Full</span>
+          <span><i class="dot" style="background:#bbf7d0;border-color:#16a34a;"></i>Win</span>
+        </div>
+      </div>
+
+      <div class="grid-10x10" id="boardGrid"></div>
+
+      <div class="status-box" id="statusBox">
+        ဂဏန်းတစ်ကွက်ကို နှိပ်ပြီး ထိုးကြေး၊ Hot ပိတ်/ဖွင့်၊ Pair Limit သို့မဟုတ် Win Number ထိန်းချုပ်ပါ။
+      </div>
+    </section>
+
+    <!-- Right: Controls & Summary -->
+    <section>
+      <!-- Round Management -->
+      <div class="card">
+        <div class="card-title"><span>Round No ထိန်းချုပ်ရန်</span></div>
+        <div class="row">
+          <input type="text" id="roundInput" placeholder="e.g. 2026-11-22-AM" />
+          <button class="btn btn-primary" onclick="handleRoundSwitch()">ဖွင့်/ပြောင်း</button>
+        </div>
+        <div class="row">
+          <select id="roundSelect" onchange="handleRoundSelectChange()"></select>
+          <button class="btn btn-outline" onclick="handleResetRound()">Round ရှင်းရန်</button>
+        </div>
+      </div>
+
+      <!-- Selected Number & Pair Limit -->
+      <div class="card">
+        <div class="card-title">
+          <span id="selectedTitle">ရွေးထားသော ဂဏန်း: 23 (R: 32)</span>
+        </div>
+        <div class="info-line" id="pairInfo">Pair Limit: 50000 | Used: 0 | Rem: 50000</div>
+
+        <label class="check-row">
+          <input type="checkbox" id="includeReverseCheck" checked onchange="renderAll()" />
+          <span>R (အပြန်ဂဏန်း) ပါ တွဲသုံးမည်</span>
+        </label>
+
+        <div class="row">
+          <input type="number" id="amountInput" value="10000" min="1" step="100" placeholder="ထိုးကြေး ပမာဏ" />
+          <button class="btn btn-primary" onclick="handlePlaceBet()">ထိုးကြေးထည့်</button>
+        </div>
+
+        <div class="row">
+          <button class="btn btn-danger" style="flex:1" onclick="handleHotToggle(true)">Hot ပိတ်မည်</button>
+          <button class="btn btn-success" style="flex:1" onclick="handleHotToggle(false)">ပြန်ဖွင့်မည်</button>
+        </div>
+
+        <div class="row">
+          <input type="number" id="limitInput" value="50000" min="0" step="1000" placeholder="နှစ်ကွက်ပေါင်း Pair Limit" />
+          <button class="btn btn-outline" onclick="handleSetPairLimit()">Limit ချိန်</button>
+        </div>
+      </div>
+
+      <!-- Win Number & Payout -->
+      <div class="card">
+        <div class="card-title"><span>ပေါက်ဂဏန်း & လျော်ကြေး (80x)</span></div>
+        <div class="row">
+          <input type="text" id="winInput" maxlength="2" placeholder="ပေါက်ဂဏန်း (00-99)" />
+          <button class="btn btn-primary" onclick="handleSetWin()">ထည့်မည်</button>
+          <button class="btn btn-outline" onclick="handleClearWin()">ဖြုတ်မည်</button>
+        </div>
+
+        <div class="summary-grid" id="summaryGrid"></div>
+      </div>
+
+      <!-- Lists -->
+      <div class="card">
+        <div class="card-title"><span>စာရင်းများ</span></div>
+        <div class="list-text" id="closedListText">ပိတ်ထားသော ဟော့ဂဏန်း (0): None</div>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:8px 0;" />
+        <div class="list-text" id="activeListText">ထိုးကြေးဝင်ထားသော ဂဏန်း (0): None</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "two_d_admin_state_v1";
+    const DEFAULT_PAIR_LIMIT = 50000;
+    const PAYOUT_MULTIPLIER = 80;
+
+    function createEmptyBoard() {
+      const board = {};
+      for (let i = 0; i < 100; i++) {
+        const num = String(i).padStart(2, "0");
+        board[num] = { number: num, isClosed: false, currentBet: 0 };
+      }
+      return board;
+    }
+
+    function createRoundObj(roundNo) {
+      return {
+        roundNo,
+        defaultPairLimit: DEFAULT_PAIR_LIMIT,
+        payoutMultiplier: PAYOUT_MULTIPLIER,
+        winNumber: null,
+        pairLimits: {},
+        board: createEmptyBoard()
+      };
+    }
+
+    function reverseNum(num) {
+      if (!/^\d{2}$/.test(num)) return null;
+      return num[1] + num[0];
+    }
+
+    function pairKeyFor(num) {
+      const rev = reverseNum(num);
+      return [num, rev].sort().join("-");
+    }
+
+    function pairLabelFor(num) {
+      const rev = reverseNum(num);
+      return rev === num ? num : `${num}/${rev}`;
+    }
+
+    function targetsFor(num, includeReverse) {
+      const rev = reverseNum(num);
+      if (!rev) return [];
+      if (!includeReverse || rev === num) return [num];
+      return [num, rev];
+    }
+
+    let state = loadState();
+    let selectedNumber = "23";
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.rounds && parsed.currentRoundNo) {
+            return parsed;
+          }
+        }
+      } catch (_) {}
+      const initialRound = "2026-11-22-AM";
+      return {
+        currentRoundNo: initialRound,
+        rounds: {
+          [initialRound]: createRoundObj(initialRound)
+        }
+      };
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (_) {}
+    }
+
+    function getActiveRound() {
+      if (!state.rounds[state.currentRoundNo]) {
+        state.rounds[state.currentRoundNo] = createRoundObj(state.currentRoundNo);
+      }
+      return state.rounds[state.currentRoundNo];
+    }
+
+    function getPairLimit(round, num) {
+      const key = pairKeyFor(num);
+      const val = round.pairLimits[key];
+      return typeof val === "number" ? val : round.defaultPairLimit;
+    }
+
+    function getPairUsed(round, num) {
+      const rev = reverseNum(num);
+      if (!rev) return 0;
+      const betA = round.board[num]?.currentBet || 0;
+      if (rev === num) return betA;
+      const betB = round.board[rev]?.currentBet || 0;
+      return betA + betB;
+    }
+
+    function getPairRemaining(round, num) {
+      const rem = getPairLimit(round, num) - getPairUsed(round, num);
+      return rem < 0 ? 0 : rem;
+    }
+
+    function setStatus(msg) {
+      document.getElementById("statusBox").textContent = msg;
+    }
+
+    function handleRoundSwitch() {
+      const input = document.getElementById("roundInput");
+      const rNo = input.value.trim();
+      if (!rNo) return;
+      state.currentRoundNo = rNo;
+      if (!state.rounds[rNo]) {
+        state.rounds[rNo] = createRoundObj(rNo);
+      }
+      saveState();
+      renderAll();
+      setStatus(`Round [${rNo}] သို့ ပြောင်းလဲပြီးပါပြီ။`);
+    }
+
+    function handleRoundSelectChange() {
+      const sel = document.getElementById("roundSelect");
+      const rNo = sel.value;
+      if (!rNo) return;
+      state.currentRoundNo = rNo;
+      saveState();
+      renderAll();
+      setStatus(`Round [${rNo}] သို့ ပြောင်းလဲပြီးပါပြီ။`);
+    }
+
+    function handleResetRound() {
+      const rNo = state.currentRoundNo;
+      state.rounds[rNo] = createRoundObj(rNo);
+      saveState();
+      renderAll();
+      setStatus(`Round [${rNo}] ၏ data များကို ပြန်လည်ရှင်းလင်းပြီးပါပြီ။`);
+    }
+
+    function handlePlaceBet() {
+      const round = getActiveRound();
+      const amt = parseInt(document.getElementById("amountInput").value, 10);
+      const incRev = document.getElementById("includeReverseCheck").checked;
+      if (isNaN(amt) || amt <= 0) {
+        setStatus("ထိုးကြေးပမာဏ မှန်ကန်စွာ ထည့်ပါ။");
+        return;
+      }
+
+      const targets = targetsFor(selectedNumber, incRev);
+      const messages = [];
+
+      for (const num of targets) {
+        const slot = round.board[num];
+        if (!slot) continue;
+        if (slot.isClosed) {
+          messages.push(`[${num}] ပိတ်ထားသည် (Hot)`);
+          continue;
+        }
+        const limit = getPairLimit(round, num);
+        const used = getPairUsed(round, num);
+        const rem = limit - used;
+        if (amt > rem) {
+          messages.push(`[${pairLabelFor(num)}] နှစ်ကွက်ပေါင်း limit ကျော်သည် (ကျန်: ${rem < 0 ? 0 : rem})`);
+          continue;
+        }
+        slot.currentBet += amt;
+        const newUsed = getPairUsed(round, num);
+        const newRem = getPairRemaining(round, num);
+        messages.push(`[${num}] +${amt} | Pair(${pairLabelFor(num)}): ${newUsed}/${limit} (ကျန်: ${newRem})`);
+      }
+
+      saveState();
+      renderAll();
+      setStatus(messages.join(" | "));
+    }
+
+    function handleHotToggle(closed) {
+      const round = getActiveRound();
+      const incRev = document.getElementById("includeReverseCheck").checked;
+      const targets = targetsFor(selectedNumber, incRev);
+      const updated = [];
+      for (const num of targets) {
+        if (round.board[num]) {
+          round.board[num].isClosed = closed;
+          updated.push(num);
+        }
+      }
+      saveState();
+      renderAll();
+      const action = closed ? "ပိတ်လိုက်သည်" : "ပြန်ဖွင့်လိုက်သည်";
+      setStatus(`[${updated.join(", ")}] ကို ${action}။`);
+    }
+
+    function handleSetPairLimit() {
+      const round = getActiveRound();
+      const lim = parseInt(document.getElementById("limitInput").value, 10);
+      if (isNaN(lim) || lim < 0) {
+        setStatus("Pair Limit ပမာဏ မမှန်ကန်ပါ။");
+        return;
+      }
+      round.pairLimits[pairKeyFor(selectedNumber)] = lim;
+      saveState();
+      renderAll();
+      setStatus(`Pair (${pairLabelFor(selectedNumber)}) limit ကို ${lim} သို့ ပြောင်းလဲပြီးပါပြီ။`);
+    }
+
+    function handleSetWin() {
+      const round = getActiveRound();
+      const winNum = document.getElementById("winInput").value.trim().padStart(2, "0");
+      if (!/^\d{2}$/.test(winNum) || !round.board[winNum]) {
+        setStatus("ပေါက်ဂဏန်း (00-99) မှန်ကန်စွာ ထည့်ပါ။");
+        return;
+      }
+      round.winNumber = winNum;
+      saveState();
+      renderAll();
+      setStatus(`ပေါက်ဂဏန်း [${winNum}] မှတ်တမ်းတင်ပြီး လျော်ကြေး တွက်ချက်ပြီးပါပြီ။`);
+    }
+
+    function handleClearWin() {
+      const round = getActiveRound();
+      round.winNumber = null;
+      document.getElementById("winInput").value = "";
+      saveState();
+      renderAll();
+      setStatus("ပေါက်ဂဏန်းကို ဖြုတ်လိုက်ပါပြီ။");
+    }
+
+    function renderAll() {
+      const round = getActiveRound();
+
+      document.getElementById("headerSub").textContent =
+        `Round: ${round.roundNo} | Default Pair Limit: ${round.defaultPairLimit.toLocaleString()} | Multiplier: ${round.payoutMultiplier}x`;
+
+      document.getElementById("roundInput").value = round.roundNo;
+
+      const selectEl = document.getElementById("roundSelect");
+      const roundKeys = Object.keys(state.rounds);
+      selectEl.innerHTML = roundKeys
+        .map((k) => `<option value="${k}" ${k === round.roundNo ? "selected" : ""}>${k}</option>`)
+        .join("");
+
+      const gridEl = document.getElementById("boardGrid");
+      gridEl.innerHTML = "";
+      for (let i = 0; i < 100; i++) {
+        const num = String(i).padStart(2, "0");
+        const slot = round.board[num];
+        const isFull = getPairRemaining(round, num) === 0;
+        const isWin = round.winNumber === num;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "slot-btn";
+        if (num === selectedNumber) btn.classList.add("selected");
+        if (isWin) btn.classList.add("win");
+        else if (slot.isClosed) btn.classList.add("closed");
+        else if (isFull) btn.classList.add("full");
+
+        const subText = slot.isClosed
+          ? "CLOSED"
+          : (slot.currentBet > 0 ? slot.currentBet.toLocaleString() : "-");
+
+        btn.innerHTML = `<span class="slot-num">${num}</span><span class="slot-sub">${subText}</span>`;
+        btn.onclick = () => {
+          selectedNumber = num;
+          document.getElementById("limitInput").value = getPairLimit(round, num);
+          renderAll();
+        };
+        gridEl.appendChild(btn);
+      }
+
+      const rev = reverseNum(selectedNumber);
+      document.getElementById("selectedTitle").textContent =
+        `ရွေးထားသော ဂဏန်း: ${selectedNumber} (R: ${rev})`;
+
+      const pLim = getPairLimit(round, selectedNumber);
+      const pUsed = getPairUsed(round, selectedNumber);
+      const pRem = getPairRemaining(round, selectedNumber);
+      document.getElementById("pairInfo").textContent =
+        `Pair (${pairLabelFor(selectedNumber)}) Limit: ${pLim.toLocaleString()} | Used: ${pUsed.toLocaleString()} | Rem: ${pRem.toLocaleString()}`;
+
+      if (round.winNumber && document.activeElement !== document.getElementById("winInput")) {
+        document.getElementById("winInput").value = round.winNumber;
+      }
+
+      let totalBet = 0;
+      const closedArr = [];
+      const activeArr = [];
+      for (let i = 0; i < 100; i++) {
+        const num = String(i).padStart(2, "0");
+        const s = round.board[num];
+        totalBet += s.currentBet;
+        if (s.isClosed) closedArr.push(num);
+        if (s.currentBet > 0) activeArr.push(`${num}(${s.currentBet.toLocaleString()})`);
+      }
+
+      const winBet = round.winNumber ? (round.board[round.winNumber]?.currentBet || 0) : 0;
+      const payout = winBet * round.payoutMultiplier;
+      const net = totalBet - payout;
+
+      document.getElementById("summaryGrid").innerHTML = `
+        <div class="stat-box">
+          <div class="stat-label">စုစုပေါင်း ထိုးကြေး</div>
+          <div class="stat-val">${totalBet.toLocaleString()}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">ပေါက်ဂဏန်း (${round.winNumber || "-"}) ထိုးကြေး</div>
+          <div class="stat-val">${winBet.toLocaleString()}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">လျော်ကြေး (${round.payoutMultiplier}x)</div>
+          <div class="stat-val">${payout.toLocaleString()}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">အသားတင် အမြတ်/အရှုံး</div>
+          <div class="stat-val ${net >= 0 ? "profit" : "loss"}">${net >= 0 ? "+" : ""}${net.toLocaleString()}</div>
+        </div>
+      `;
+
+      document.getElementById("closedListText").textContent =
+        `ပိတ်ထားသော ဟော့ဂဏန်း (${closedArr.length}): ${closedArr.length ? closedArr.join(", ") : "None"}`;
+      document.getElementById("activeListText").textContent =
+        `ထိုးကြေးဝင်ထားသော ဂဏန်း (${activeArr.length}): ${activeArr.length ? activeArr.join(", ") : "None"}`;
+    }
+
+    document.getElementById("limitInput").value = getPairLimit(getActiveRound(), selectedNumber);
+    renderAll();
+  </script>
+</body>
+</html>
